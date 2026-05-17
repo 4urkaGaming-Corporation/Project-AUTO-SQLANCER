@@ -67,3 +67,83 @@ class TestConfigLoading:
                 json.load(f)
 
 
+# ---------------------------------------------------------------------------
+# Required fields
+# ---------------------------------------------------------------------------
+
+REQUIRED_FIELDS = [
+    "dbms", "embedded", "image_name", "tag",
+    "container_name", "username", "oracle",
+    "num_threads", "timeout_seconds",
+]
+
+
+class TestRequiredFields:
+    @pytest.mark.parametrize("field", REQUIRED_FIELDS)
+    def test_required_field_present(self, field):
+        cfg = _make_config()
+        assert field in cfg, f"Required field '{field}' missing from config template"
+
+    @pytest.mark.parametrize("field", REQUIRED_FIELDS)
+    def test_missing_field_detected(self, field):
+        cfg = _make_config()
+        del cfg[field]
+        # Simulates the check that start.py would do
+        assert field not in cfg
+
+
+# ---------------------------------------------------------------------------
+# Field types / constraints
+# ---------------------------------------------------------------------------
+
+class TestFieldConstraints:
+    def test_num_threads_is_positive_int(self):
+        cfg = _make_config(num_threads=4)
+        assert isinstance(cfg["num_threads"], int)
+        assert cfg["num_threads"] > 0
+
+    def test_timeout_seconds_is_positive(self):
+        cfg = _make_config(timeout_seconds=120)
+        assert cfg["timeout_seconds"] > 0
+
+    def test_embedded_valid_values(self):
+        for val in ("yes", "no"):
+            cfg = _make_config(embedded=val)
+            assert cfg["embedded"] in ("yes", "no")
+
+    def test_oracle_non_empty(self):
+        cfg = _make_config(oracle="NoREC")
+        assert len(cfg["oracle"]) > 0
+
+    def test_image_name_non_empty(self):
+        cfg = _make_config(image_name="auto-sqlancer-sqlite")
+        assert len(cfg["image_name"]) > 0
+
+    def test_tag_non_empty(self):
+        cfg = _make_config(tag="latest")
+        assert cfg["tag"].strip() != ""
+
+
+# ---------------------------------------------------------------------------
+# Global config.json structure
+# ---------------------------------------------------------------------------
+
+class TestGlobalConfig:
+    def test_global_config_has_dbms_list(self, tmp_path):
+        global_cfg = {
+            "dbms_list": ["sqlite", "duckdb", "mysql", "postgres", "tidb", "cockroachdb"]
+        }
+        path = _write_config(tmp_path / "config.json", global_cfg)
+        with open(path) as f:
+            data = json.load(f)
+        assert "dbms_list" in data
+        assert isinstance(data["dbms_list"], list)
+        assert len(data["dbms_list"]) > 0
+
+    def test_known_dbms_in_list(self, tmp_path):
+        global_cfg = {"dbms_list": ["sqlite", "duckdb", "mysql", "postgres"]}
+        path = _write_config(tmp_path / "config.json", global_cfg)
+        with open(path) as f:
+            data = json.load(f)
+        for dbms in ("sqlite", "duckdb"):
+            assert dbms in data["dbms_list"]

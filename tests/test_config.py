@@ -43,3 +43,27 @@ def _write_config(path, data):
     return path
 
 
+# ---------------------------------------------------------------------------
+# Loading
+# ---------------------------------------------------------------------------
+
+class TestConfigLoading:
+    def test_valid_config_loads(self, tmp_path):
+        cfg_path = _write_config(tmp_path / "config.json", _make_config())
+        with open(cfg_path) as f:
+            cfg = json.load(f)
+        assert cfg["dbms"] == "sqlite"
+
+    def test_missing_file_raises(self, tmp_path):
+        with pytest.raises(FileNotFoundError):
+            with open(tmp_path / "nonexistent.json") as f:
+                json.load(f)
+
+    def test_malformed_json_raises(self, tmp_path):
+        bad = tmp_path / "bad.json"
+        bad.write_text("{not valid json")
+        with pytest.raises(json.JSONDecodeError):
+            with open(bad) as f:
+                json.load(f)
+
+

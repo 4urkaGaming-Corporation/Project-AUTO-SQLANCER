@@ -70,3 +70,48 @@ class TestRunCommand:
         assert "captured_line" in content
 
 
+# ---------------------------------------------------------------------------
+# setup_logging
+# ---------------------------------------------------------------------------
+
+class TestSetupLogging:
+    def test_returns_four_values(self, tmp_path):
+        script_log, docker_log, sqlancer_log, run_dir = setup_logging(str(tmp_path))
+        assert script_log is not None
+        assert docker_log is not None
+        assert sqlancer_log is not None
+        assert isinstance(run_dir, str)
+
+    def test_run_dir_is_created(self, tmp_path):
+        _, _, _, run_dir = setup_logging(str(tmp_path))
+        assert os.path.isdir(run_dir)
+
+    def test_log_files_exist_after_write(self, tmp_path):
+        script_log, docker_log, sqlancer_log, run_dir = setup_logging(str(tmp_path))
+        script_log.info("script entry")
+        docker_log.debug("docker entry")
+        sqlancer_log.debug("sqlancer entry")
+
+        # flush all handlers
+        for lg in (script_log, docker_log, sqlancer_log):
+            for h in lg.handlers:
+                h.flush()
+
+        files = os.listdir(run_dir)
+        assert "script.log" in files
+        assert "docker.log" in files
+        assert "sqlancer.log" in files
+
+    def test_run_dir_uses_timestamp_pattern(self, tmp_path):
+        import re
+        _, _, _, run_dir = setup_logging(str(tmp_path))
+        # Expected pattern: YY-MM-DD-HH-MM-SS
+        pattern = r"\d{2}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}$"
+        assert re.search(pattern, run_dir), f"run_dir '{run_dir}' doesn't match timestamp pattern"
+
+    def test_multiple_calls_create_separate_dirs(self, tmp_path):
+        import time
+        _, _, _, run_dir1 = setup_logging(str(tmp_path))
+        time.sleep(1)  # ensure different timestamp
+        _, _, _, run_dir2 = setup_logging(str(tmp_path))
+        assert run_dir1 != run_dir2

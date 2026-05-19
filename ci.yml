@@ -93,3 +93,24 @@ test-sqlite:
           key: ${{ runner.os }}-buildx-duckdb-${{ hashFiles('duckdb/Dockerfile') }}
           restore-keys: |
             ${{ runner.os }}-buildx-duckdb-
+
+      - name: Create Docker network
+        run: docker network create sqlancer-net
+
+      - name: Build SQLancer image
+        run: python3 start.py build --sqlancer
+
+      - name: Build DuckDB image
+        run: python3 start.py build --dbms duckdb
+
+      - name: Run integration test (DuckDB)
+        run: |
+          python -m pytest tests/test_integration_duckdb.py -v --timeout=300
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-logs-${{ github.run_id }}
+          path: logs/
+          retention-days: 7

@@ -107,3 +107,27 @@ def logging_setup(tmp_path_factory):
     script_log, docker_log, sqlancer_log, run_dir = setup_logging(log_base)
     return script_log, docker_log, sqlancer_log, run_dir
 
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+
+@requires_docker
+def test_docker_network_exists():
+    """sqlancer-net must exist before any container test runs."""
+    assert _network_exists("sqlancer-net"), (
+        "Docker network 'sqlancer-net' not found. "
+        "Create it with: docker network create sqlancer-net"
+    )
+
+
+@requires_docker
+@requires_sqlancer_image
+def test_sqlancer_image_present():
+    assert _image_exists("sqlancer:latest")
+
+
+@requires_docker
+@requires_duckdb_image
+def test_duckdb_image_present():
+    assert _image_exists("auto-sqlancer-duckdb:latest")

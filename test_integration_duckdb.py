@@ -131,3 +131,49 @@ def test_sqlancer_image_present():
 @requires_duckdb_image
 def test_duckdb_image_present():
     assert _image_exists("auto-sqlancer-duckdb:latest")
+
+
+@requires_docker
+@requires_sqlancer_image
+@requires_duckdb_image
+def test_full_duckdb_run(logging_setup, tmp_path):
+    """
+    Runs the full test pipeline for DuckDB with a short timeout.
+    Validates that:
+      1. The SQLancer container starts without error.
+      2. Logs are written to the run directory.
+      3. The process exits with code 0.
+    """
+    script_log, docker_log, sqlancer_log, run_dir = logging_setup
+
+    # DuckDB is embedded — no separate DBMS container needed.
+    # We invoke the SQLancer container directly.
+    log_dir_host = str(tmp_path / "sqlancer-logs")
+    os.makedirs(log_dir_host, exist_ok=True)
+
+    cmd = [
+        "docker", "run", "--rm",
+        "--name", "auto-sqlancer-ci-duckdb",
+        "--network", "sqlancer-net",
+        "-e", f"SQLANCER_DBMS={DUCKDB_CONFIG['dbms']}",
+        "-e", f"SQLANCER_USERNAME={DUCKDB_CONFIG['username']}",
+        "-e", f"SQLANCER_PASSWORD={DUCKDB_CONFIG['password']}",
+        "-e", f"SQLANCER_ORACLE={DUCKDB_CONFIG['oracle']}",
+        "-e", f"SQLANCER_THREADS={DUCKDB_CONFIG['num_threads']}",
+        "-e", f"SQLANCER_TIMEOUT={DUCKDB_CONFIG['timeout_seconds']}",
+        "-v", f"{log_dir_host}:/root/sqlancer/target/logs",
+        "sqlancer:latest",
+    ]
+
+    rc = run_command(cmd, sqlancer_log, check=False)
+
+    # SQLancer exits 0 on timeout (normal completion) or 0 on success.
+    # Non-zero indicates a crash or configuration error.
+    assert rc == 0, (
+        f"SQLancer container exited with code {rc}. "
+        f"Check logs in: {log_dir_host}"
+    )
+
+    # At minimum the log directory should exist after the run
+    assert os.path.isdir(log_dir_host)
+

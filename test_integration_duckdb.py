@@ -83,3 +83,27 @@ requires_duckdb_image = pytest.mark.skipif(
     not _image_exists("auto-sqlancer-duckdb:latest"),
     reason="auto-sqlancer-duckdb:latest not built — run: python3 start.py build --dbms duckdb",
 )
+
+
+DUCKDB_CONFIG = {
+    "dbms": "duckdb",
+    "embedded": "yes",
+    "image_name": "auto-sqlancer-duckdb",
+    "tag": "latest",
+    "container_name": "duckdb-sqlancer-ci",
+    "username": "root",
+    "password": "",
+    "oracle": "NoREC",
+    "num_threads": 1,
+    # Short timeout — enough to validate the run starts and doesn't crash
+    "timeout_seconds": 30,
+    "env": {},
+}
+
+
+@pytest.fixture(scope="module")
+def logging_setup(tmp_path_factory):
+    log_base = str(tmp_path_factory.mktemp("logs"))
+    script_log, docker_log, sqlancer_log, run_dir = setup_logging(log_base)
+    return script_log, docker_log, sqlancer_log, run_dir
+

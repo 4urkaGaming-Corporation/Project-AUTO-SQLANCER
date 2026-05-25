@@ -177,3 +177,16 @@ def test_full_duckdb_run(logging_setup, tmp_path):
     # At minimum the log directory should exist after the run
     assert os.path.isdir(log_dir_host)
 
+
+@requires_docker
+def test_container_cleanup_after_run():
+    """
+    Verifies that no stale CI containers are left running after the test.
+    The --rm flag on docker run should handle this, but we double-check.
+    """
+    # Give Docker a moment to clean up
+    time.sleep(2)
+    assert not _container_running("auto-sqlancer-ci-duckdb"), (
+        "Container 'auto-sqlancer-ci-duckdb' is still running after test — "
+        "check that --rm was passed to docker run"
+    )

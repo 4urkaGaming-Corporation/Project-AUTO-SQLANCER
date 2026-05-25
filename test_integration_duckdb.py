@@ -67,3 +67,19 @@ def _container_running(name: str) -> bool:
         text=True,
     )
     return name in result.stdout
+
+
+requires_docker = pytest.mark.skipif(
+    not _docker_available(),
+    reason="Docker daemon not available",
+)
+
+requires_sqlancer_image = pytest.mark.skipif(
+    not _image_exists("sqlancer:latest"),
+    reason="sqlancer:latest image not built — run: python3 start.py build --sqlancer",
+)
+
+requires_duckdb_image = pytest.mark.skipif(
+    not _image_exists("auto-sqlancer-duckdb:latest"),
+    reason="auto-sqlancer-duckdb:latest not built — run: python3 start.py build --dbms duckdb",
+)

@@ -8,7 +8,7 @@
 
 ---
 
-## 🎯 Goals of the Project
+##  Goals of the Project
 
 The goal was to implement a full automated testing infrastructure for the `auto-sqlancer` project as requested in [issue #23](https://github.com/sqlancer/auto-sqlancer/issues/23). The work involved:
 
@@ -20,7 +20,7 @@ The goal was to implement a full automated testing infrastructure for the `auto-
 
 ---
 
-## ✅ Completed Work
+##  Completed Work
 
 ### 1. GitHub Actions Workflow (`.github/workflows/ci.yml`)
 
@@ -90,7 +90,7 @@ All commands support `--cache` to reuse Docker layer cache. Logging is initialis
 
 ---
 
-## 🛠️ Pull Requests & Key Commits
+##  Pull Requests & Key Commits
 
 | Commit | Description |
 |---|---|
@@ -107,7 +107,7 @@ Full history: [github.com/4urkaGaming-Corporation/Project-AUTO-SQLANCER/commits/
 
 ---
 
-## 🗂️ Repository Structure
+##  Repository Structure
 
 ```
 Project-AUTO-SQLANCER/
@@ -151,7 +151,7 @@ python -m pytest tests/test_integration_duckdb.py -v --timeout=300
 
 ---
 
-## 📝 Summary
+##  Summary
 
 This contribution fully resolves [issue #23](https://github.com/sqlancer/auto-sqlancer/issues/23) by delivering a production-ready automated testing infrastructure for `auto-sqlancer`. The solution provides **37 pytest test cases** across three test modules, a **three-job GitHub Actions pipeline** that automatically lints Python code, runs Docker-free unit tests, and executes a real end-to-end DuckDB integration test on every push and pull request.
 

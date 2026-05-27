@@ -130,7 +130,7 @@ Project-AUTO-SQLANCER/
 
 ---
 
-## ▶️ Running the Tests
+##  Running the Tests
 
 **Unit tests (no Docker needed):**
 ```bash

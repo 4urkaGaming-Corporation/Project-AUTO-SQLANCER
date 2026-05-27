@@ -64,7 +64,7 @@ def _run_test_command(args, parser, dbms_list, script_log, docker_log, sqlancer_
 def _run_build_command(args, parser, dbms_list, script_log, docker_log):
     use_cache = args.cache
     if args.sqlancer:
-        build_sqlancer_image(script_log, docker_log, not use_cache)
+        build_sqlancer_image(script_log, docker_log, force_rebuild=not use_cache)
 
     elif args.dbms == "all":
         for dbms in dbms_list:

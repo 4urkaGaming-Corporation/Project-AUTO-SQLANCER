@@ -6,6 +6,7 @@ from utils import run_command
 
 
 def build_sqlancer_image(script_log, docker_log, embedded="no", dbms="", force_rebuild=False):
+    context_dir = "./sqlancer"
     if embedded == "yes":
         dockerfile_path = f"./{dbms}/Dockerfile"
         script_log.info(f"Using embedded DBMS Dockerfile: {dockerfile_path}")
@@ -16,10 +17,9 @@ def build_sqlancer_image(script_log, docker_log, embedded="no", dbms="", force_r
         )
         script_log.info("SQLancer image built: sqlancer:latest")
         return
-    else:
-        dockerfile_path = "./sqlancer/Dockerfile"
-        context_dir = "./sqlancer"
-        script_log.info(f"Using default SQLancer Dockerfile: {dockerfile_path}")
+
+    dockerfile_path = "./sqlancer/Dockerfile"
+    script_log.info(f"Using default SQLancer Dockerfile: {dockerfile_path}")
 
     if force_rebuild:
         script_log.info("Rebuilding SQLancer image: sqlancer:latest ...")

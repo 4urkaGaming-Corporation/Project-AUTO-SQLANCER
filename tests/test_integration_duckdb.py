@@ -14,16 +14,14 @@ These tests are skipped automatically when Docker is unavailable so the
 lint / unit-test job stays fast.
 """
 
-import json
-import logging
 import os
 import subprocess
 import sys
 import time
 
-import pytest
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+import pytest
 
 from utils import run_command, setup_logging
 

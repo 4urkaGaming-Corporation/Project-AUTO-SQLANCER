@@ -9,12 +9,10 @@ import logging
 import os
 import subprocess
 import sys
-import tempfile
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest
-
-# Make sure we can import from the project root
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from utils import run_command, setup_logging
 
@@ -29,7 +27,6 @@ PYTHON = sys.executable
 class TestRunCommand:
     def test_simple_echo(self, tmp_path):
         logger = logging.getLogger("test_echo")
-        # Use Python to print instead of shell "echo" (works on Windows too)
         rc = run_command([PYTHON, "-c", "print('hello')"], logger, check=True)
         assert rc == 0
 
@@ -92,7 +89,6 @@ class TestSetupLogging:
         docker_log.debug("docker entry")
         sqlancer_log.debug("sqlancer entry")
 
-        # flush all handlers
         for lg in (script_log, docker_log, sqlancer_log):
             for h in lg.handlers:
                 h.flush()
@@ -105,13 +101,12 @@ class TestSetupLogging:
     def test_run_dir_uses_timestamp_pattern(self, tmp_path):
         import re
         _, _, _, run_dir = setup_logging(str(tmp_path))
-        # Expected pattern: YY-MM-DD-HH-MM-SS
         pattern = r"\d{2}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}$"
         assert re.search(pattern, run_dir), f"run_dir '{run_dir}' doesn't match timestamp pattern"
 
     def test_multiple_calls_create_separate_dirs(self, tmp_path):
         import time
         _, _, _, run_dir1 = setup_logging(str(tmp_path))
-        time.sleep(1)  # ensure different timestamp
+        time.sleep(1)
         _, _, _, run_dir2 = setup_logging(str(tmp_path))
         assert run_dir1 != run_dir2

@@ -1,11 +1,11 @@
 import os
 import sys
-import json
 import subprocess
 import time
 import shlex
-from datetime import datetime
+
 from utils import run_command
+
 
 def container_exists(name):
     result = subprocess.run(
@@ -13,6 +13,7 @@ def container_exists(name):
         capture_output=True, text=True
     )
     return name in result.stdout.strip().splitlines()
+
 
 def start_db_container(dbms, cfg, script_log, docker_log):
     image_name = cfg.get("image_name")
@@ -31,11 +32,14 @@ def start_db_container(dbms, cfg, script_log, docker_log):
     startup_cmd = cfg.get("startup_cmd", [])
 
     if not image:
-        script_log.error( "Missing 'image' field in config.json")
+        script_log.error("Missing 'image' field in config.json")
         sys.exit(1)
 
     if container_exists(container_name):
-        script_log.info( "Container %s already exists, remove the old container and restart", container_name)
+        script_log.info(
+            "Container %s already exists, remove the old container and restart",
+            container_name
+        )
         remove_container(container_name, script_log, docker_log)
 
     env_vars = []
@@ -54,7 +58,6 @@ def start_db_container(dbms, cfg, script_log, docker_log):
     script_log.info("Starting DBMS container: %s ...", container_name)
     time.sleep(10)
 
-    
     init_sql = cfg.get("init_sql")
     init_cmd_template = cfg.get("init_sql_command_template")
     if init_sql and init_cmd_template:
@@ -67,17 +70,22 @@ def start_db_container(dbms, cfg, script_log, docker_log):
             full_cmd = ["docker", "exec", container_name] + shlex.split(cmd_str)
             script_log.info("Running init SQL inside container...")
             run_command(full_cmd, docker_log)
-        except Exception as e:
+        except Exception:
             script_log.warning("Init SQL running failed")
 
     script_log.info("DBMS container started: %s", container_name)
 
-def start_sqlancer_container(dbms, host_container_name, username, password, oracle, threads, timeout, script_log, docker_log, sqlancer_log, run_dir):
-    cmd = f"java -jar sqlancer-*.jar --num-threads {threads} --timeout-seconds {timeout} --username {username} --password {password} --host {host_container_name} {dbms} --oracle {oracle}"
+
+def start_sqlancer_container(
+    dbms, host_container_name, username, password, oracle,
+    threads, timeout, script_log, docker_log, sqlancer_log, run_dir
+):
+    cmd = (
+        f"java -jar sqlancer-*.jar --num-threads {threads} --timeout-seconds {timeout} "
+        f"--username {username} --password {password} --host {host_container_name} "
+        f"{dbms} --oracle {oracle}"
+    )
     script_log.info("Executing test: %s", cmd)
-    # date = datetime.today().strftime("%y-%m-%d-%H-%M-%S")  
-    # log_dir_host = os.path.abspath(os.path.join("logs", date))
-    # os.makedirs(log_dir_host, exist_ok=True)
 
     log_dir_host = os.path.abspath(run_dir)
     os.makedirs(log_dir_host, exist_ok=True)
@@ -93,7 +101,6 @@ def start_sqlancer_container(dbms, host_container_name, username, password, orac
         "-e", f"SQLANCER_ORACLE={oracle}",
         "-e", f"SQLANCER_THREADS={threads}",
         "-e", f"SQLANCER_TIMEOUT={timeout}",
-        # "-v", f"{log_dir_host}:/logs",
         "-v", f"{log_dir_host}:/root/sqlancer/target/logs",
         "sqlancer:latest"
     ], sqlancer_log)
@@ -124,26 +131,31 @@ def test_single(cfg, script_log, docker_log, sqlancer_log, run_dir, use_cache=Fa
     remove_images(script_log, docker_log)
     script_log.info("==============================Executing test==============================")
 
+
 def remove_container(container_name, script_log, docker_log):
     script_log.info("Removing container: %s...", container_name)
     try:
         run_command(["docker", "rm", "-f", container_name], docker_log)
         script_log.info("Container removed: %s", container_name)
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         script_log.warning("Container removing failed: %s", container_name)
+
 
 def remove_images(script_log, docker_log):
     script_log.info("Removing outdated images...")
     try:
         run_command(["docker", "image", "prune", "-f"], docker_log)
         script_log.info("Images removed")
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         script_log.warning("Images removing failed")
 
-def test_custom_dockerfile(dockerfile_path, cfg, script_log, docker_log, sqlancer_log, run_dir, use_cache=False):
+
+def test_custom_dockerfile(
+    dockerfile_path, cfg, script_log, docker_log, sqlancer_log, run_dir, use_cache=False
+):
     script_log.info("==============================Executing test==============================")
-    
-    dbms=cfg["dbms"]
+
+    dbms = cfg["dbms"]
 
     start_db_container(dbms, cfg, script_log, docker_log)
     start_sqlancer_container(
@@ -163,4 +175,3 @@ def test_custom_dockerfile(dockerfile_path, cfg, script_log, docker_log, sqlance
     remove_container(cfg["container_name"], script_log, docker_log)
     remove_images(script_log, docker_log)
     script_log.info("==============================Executing test==============================")
-

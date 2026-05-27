@@ -1,8 +1,9 @@
 import os
 import sys
 import subprocess
-import logging
+
 from utils import run_command
+
 
 def build_sqlancer_image(script_log, docker_log, embedded, dbms, force_rebuild=False):
     context_dir = "./sqlancer"
@@ -12,7 +13,7 @@ def build_sqlancer_image(script_log, docker_log, embedded, dbms, force_rebuild=F
         script_log.info("Embedded mode: rebuilding SQLancer image unconditionally ...")
         run_command(
             ["docker", "build", "--no-cache", "-f", dockerfile_path, "-t", "sqlancer:latest", context_dir],
-             docker_log
+            docker_log
         )
         script_log.info("SQLancer image built: sqlancer:latest")
         return
@@ -46,8 +47,6 @@ def build_sqlancer_image(script_log, docker_log, embedded, dbms, force_rebuild=F
         script_log.info("SQLancer image built: sqlancer:latest")
 
 
-
-
 def build_network(script_log, docker_log, network_name="sqlancer-net"):
     try:
         output = subprocess.check_output([
@@ -62,10 +61,10 @@ def build_network(script_log, docker_log, network_name="sqlancer-net"):
             script_log.info("Network built: %s", network_name)
         else:
             script_log.info("Network already exists: %s", network_name)
-            
-    except Exception as e:
+    except Exception:
         script_log.error("Network building failed: %s", network_name)
         sys.exit(1)
+
 
 def build_db_image(cfg, use_cache, script_log, docker_log, custom=False, dockerfile_path=""):
     image = f"{cfg['image_name']}:{cfg['tag']}"
@@ -92,4 +91,3 @@ def build_environment(cfg, use_cache, script_log, docker_log, custom=False, dock
     if cfg["embedded"] == "no":
         build_db_image(cfg, use_cache, script_log, docker_log, custom, dockerfile_path)
     script_log.info("==============================Building environment==============================")
-    

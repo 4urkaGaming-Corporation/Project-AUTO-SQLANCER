@@ -3,14 +3,16 @@ import os
 import argparse
 import sys
 import json
-from test import test_single, test_custom_dockerfile
+
+from test import test_single
 from build import build_environment, build_sqlancer_image, build_db_image
 from utils import setup_logging
-import logging
+
 
 def load_json(path):
     with open(path) as f:
         return json.load(f)
+
 
 def main():
     parser = argparse.ArgumentParser(description="AUTO-SQLancer")
@@ -49,7 +51,6 @@ def main():
             for dbms in dbms_list:
                 config_path = os.path.join(dbms, "config.json")
                 if not os.path.exists(config_path):
-                    # print(f"[WARNING] Skipping {dbms}, missing config file.")
                     continue
                 cfg = load_json(config_path)
                 build_environment(cfg, use_cache, script_log, docker_log)
@@ -63,6 +64,7 @@ def main():
             test_single(cfg, script_log, docker_log, sqlancer_log, run_dir, use_cache)
         else:
             parser.error("Must specify either --dbms or --dockerfile")
+
     elif args.command == "build":
         if args.sqlancer:
             build_sqlancer_image(script_log, docker_log, not use_cache)
@@ -71,20 +73,19 @@ def main():
             for dbms in dbms_list:
                 config_path = os.path.join(dbms, "config.json")
                 if not os.path.exists(config_path):
-                    # print(f"[WARNING] Skipping {dbms}, missing config file.")
                     continue
                 cfg = load_json(config_path)
                 build_db_image(cfg, use_cache, script_log, docker_log)
         elif args.dbms:
             config_path = os.path.join(args.dbms, "config.json")
             if not os.path.exists(config_path):
-                # print(f"[ERROR] Config file not found for DBMS: {args.dbms}")
                 sys.exit(1)
             cfg = load_json(config_path)
             build_db_image(cfg, use_cache, script_log, docker_log)
 
         else:
             parser.error("Must specify --dbms or --sqlancer for build command")
+
 
 if __name__ == "__main__":
     main()

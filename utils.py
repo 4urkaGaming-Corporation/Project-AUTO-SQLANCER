@@ -3,7 +3,7 @@ import os
 import sys
 from datetime import datetime
 import subprocess
-import logging
+
 
 def run_command(cmd, logger: logging.Logger, check=True):
     logger.debug("Running: %s", " ".join(cmd))
@@ -15,6 +15,7 @@ def run_command(cmd, logger: logging.Logger, check=True):
         if check and rc != 0:
             raise subprocess.CalledProcessError(rc, cmd)
         return rc
+
 
 def setup_logging(log_dir="logs"):
     run_dir = os.path.join(log_dir, datetime.now().strftime("%y-%m-%d-%H-%M-%S"))

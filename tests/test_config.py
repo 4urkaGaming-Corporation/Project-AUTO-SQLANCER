@@ -8,7 +8,6 @@ No Docker required — pure Python.
 import json
 import os
 import sys
-import tempfile
 
 import pytest
 

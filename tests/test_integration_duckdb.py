@@ -21,9 +21,9 @@ import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-import pytest
+import pytest  # noqa: E402
 
-from utils import run_command, setup_logging
+from utils import run_command, setup_logging  # noqa: E402
 
 
 # ---------------------------------------------------------------------------

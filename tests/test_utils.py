@@ -12,9 +12,9 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-import pytest
+import pytest  # noqa: E402
 
-from utils import run_command, setup_logging
+from utils import run_command, setup_logging  # noqa: E402
 
 # On Windows "python3" may not exist — use the current interpreter instead
 PYTHON = sys.executable
